@@ -26,9 +26,9 @@ func SubscribeForTransfer(listener *IERC20.IERC20Filterer, listenChannel chan<- 
 }
 
 // Confirms payment. Takes in token's contract address, user address and amount of tokens
-// user should send, returns true whenever tokens are received. Note that you should
+// user should send, returns true through channel whenever tokens are received. Note that you should
 // specify the recepient address and gateway websocket in .env file beforehand.
-func ConfirmPayment(token common.Address, userAddress string, expectedAmount string) bool {
+func ConfirmPayment(token common.Address, userAddress string, expectedAmount string, output chan bool) {
 
 	ctx := context.Background()
 	var channel = make(chan *IERC20.IERC20Transfer)
@@ -64,6 +64,7 @@ EventLoop:
 			{
 				fmt.Println("From:", eventResult.From, "Value:", eventResult.Value)
 				if eventResult.Value.String() == expectedAmount && eventResult.From == user {
+					output <- true
 					subscription.Unsubscribe()
 					break EventLoop
 				}
@@ -71,5 +72,5 @@ EventLoop:
 
 		}
 	}
-	return true
+
 }
